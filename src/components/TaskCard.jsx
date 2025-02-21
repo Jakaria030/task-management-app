@@ -1,7 +1,7 @@
 
-const TaskCard = ({ task }) => { 
+const TaskCard = ({ task, index, setActiveCard }) => { 
     return (
-        <div draggable className="border-2 border-slate-200 active:border-slate-400 transition-all bg-slate-200 rounded-md text-slate-800 p-2 sm:p-3 shadow-md">
+        <div draggable onDragStart={()=> setActiveCard(index)} onDragEnd={()=> setActiveCard(null)} className="border-2 border-slate-200 active:opacity-70 cursor-grab active:border-slate-400 transition-all bg-slate-200 rounded-md text-slate-800 p-2 sm:p-3 shadow-md">
             <h3 className="text-lg font-medium">{task.title}</h3>
             <p>{task.description}</p>
             <div className="flex items-center justify-between mt-2">

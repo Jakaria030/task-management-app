@@ -4,9 +4,19 @@ import { AuthContext } from "../provider/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 
-const LeftAside = ({ todo, inProgress, done }) => {
+const LeftAside = ({ tasks }) => {
     const { signOutUser } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    const taskCounts = (items, category) => {
+        const task = items.filter((item) => item.category === category);
+        return task.length;
+    };
+    
+    // Extract counts
+    const todoCount = taskCounts(tasks, 'To-Do');
+    const inProgressCount = taskCounts(tasks, 'In Progress');
+    const doneCount = taskCounts(tasks, 'Done');
 
     const handleSignOut = async () => {
         await signOutUser();
@@ -15,9 +25,9 @@ const LeftAside = ({ todo, inProgress, done }) => {
 
     // chart data
     const data = [
-        { name: "To-Do", value: todo.length, color: "#FF6B6B" },
-        { name: "In Progress", value: inProgress.length, color: "#60A5FA" },
-        { name: "Done", value: done.length, color: "#6BCB77" }
+        { name: "To-Do", value: todoCount, color: "#FF6B6B" },
+        { name: "In Progress", value: inProgressCount, color: "#60A5FA" },
+        { name: "Done", value: doneCount, color: "#6BCB77" }
     ];
 
     return (
