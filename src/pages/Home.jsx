@@ -12,18 +12,26 @@ const baseURL = import.meta.env.VITE_baseURL;
 const Home = () => {
     const { user, loading } = useContext(AuthContext);
     const [isLoading, setIsLoading] = useState(false);
-    const [tasks, setTasks] = useState([]);
+    const [todo, setTodo] = useState([]);
+    const [inProgress, setInProgress] = useState([]);
+    const [done, setDone] = useState([]);
 
     if (loading) {
         return <Spinner></Spinner>;
     }
 
     const getTasks = async () => {
-        try{
+        try {
             setIsLoading(true);
-            const res = await axios.get(`${baseURL}/tasks?email=${user?.email}`);
-            setTasks(res.data);
-        } finally{
+            const { data } = await axios.get(`${baseURL}/tasks?email=${user?.email}`);
+            const categoryToDo = data.filter(task => task.category === "To-Do");
+            const categoryInProgress = data.filter(task => task.category === "In Progress");
+            const categoryDoone = data.filter(task => task.category === "Done");
+
+            setTodo(categoryToDo);
+            setInProgress(categoryInProgress);
+            setDone(categoryDoone);
+        } finally {
             setIsLoading(false);
         }
     };
@@ -53,7 +61,7 @@ const Home = () => {
             if (res.data.acknowledged) {
                 e.target.reset();
                 getTasks();
-                document.getElementById('close_modal').click();
+                document.getElementById('close_add_modal').click();
             }
         } finally {
             setIsLoading(false);
@@ -85,57 +93,63 @@ const Home = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 py-5 md:py-8">
                     {/* To-DO */}
                     <div className="bg-slate-300 shadow-lg p-3 sm:p-5 space-y-5">
-                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">To-Do ({tasks?.length})</h2>
+                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">To-Do ({todo?.length})</h2>
                         <div className="space-y-5">
                             {/* dragable component */}
                             {
-                                tasks.map((task) => <TaskCard 
+                                todo.map((task) => <TaskCard
                                     key={task._id}
                                     task={task}
-                                ></TaskCard> )
+                                ></TaskCard>)
                             }
-                            
                         </div>
                     </div>
 
                     {/* In Progress */}
                     <div className="bg-slate-300 shadow-lg p-3 sm:p-5 space-y-5">
-                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">In Progress</h2>
+                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">In Progress ({inProgress?.length})</h2>
                         <div className="space-y-5">
                             {/* dragable component */}
-                            {/* <TaskCard></TaskCard>
-                            <TaskCard></TaskCard> */}
+                            {
+                                inProgress.map((task) => <TaskCard
+                                    key={task._id}
+                                    task={task}
+                                ></TaskCard>)
+                            }
                         </div>
                     </div>
 
                     {/* Done */}
                     <div className="bg-slate-300 shadow-lg p-3 sm:p-5 space-y-5">
-                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">Done</h2>
+                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">Done ({done?.length})</h2>
                         <div className="space-y-5">
                             {/* dragable component */}
-                            {/* <TaskCard></TaskCard>
-                            <TaskCard></TaskCard> */}
+                            {
+                                done.map((task) => <TaskCard
+                                    key={task._id}
+                                    task={task}
+                                ></TaskCard>)
+                            }
                         </div>
                     </div>
                 </div>
 
-                {/* Modal */}
+                {/* Add Modal */}
                 <dialog id="add_task_id" className="modal">
                     <div className="modal-box rounded-md">
                         <form method="dialog">
-                            <button id="close_modal" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                            <button id="close_add_modal" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                         </form>
                         <div>
                             <h3 className="text-2xl text-center font-medium mb-2">Add Task Form</h3>
                             <form onSubmit={handleFormSubmit} className="space-y-3 text-center">
-                                <input type="text" name="title" placeholder="Title" className="input input-bordered w-full rounded-md" required/>
+                                <input type="text" name="title" placeholder="Title" className="input input-bordered w-full rounded-md" required />
                                 <textarea name="description" className="textarea textarea-bordered w-full rounded-md" placeholder="Bio" required></textarea>
                                 <button type="submit" className="w-20 py-2 bg-blue-500 text-white font-medium rounded-md">{isLoading ? <Loader></Loader> : "ADD"}</button>
                             </form>
                         </div>
                     </div>
                 </dialog>
-
             </main>
         </div>
     );
