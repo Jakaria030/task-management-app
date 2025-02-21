@@ -73,7 +73,7 @@ const Home = () => {
         <div className="flex flex-col lg:flex-row min-h-screen bg-slate-300">
             {/* left sidebar */}
             <div className="hidden lg:flex">
-                <LeftAside></LeftAside>
+                <LeftAside todo={todo} inProgress={inProgress} done={done}></LeftAside>
             </div>
 
             {/* top navbar */}
