@@ -84,6 +84,14 @@ const Home = () => {
         setRefetch(!refetch);
     };
 
+    // eidt task
+
+    // delete task
+    const deleteTask = async (id) => {
+        await axios.delete(`${baseURL}/tasks/${id}`);
+        setRefetch(!refetch);
+    }
+
     return (
         <div className="flex flex-col lg:flex-row min-h-screen bg-slate-300">
             {/* left sidebar */}
@@ -117,6 +125,7 @@ const Home = () => {
                                     task={task}
                                     index={index}
                                     setActiveCard={setActiveCard}
+                                    deleteTask={deleteTask}
                                 >
                                 </TaskCard><DropArea onDrop={() => onDrop('To-Do', index + 1)} /></div>) : null))
                             }
@@ -134,6 +143,7 @@ const Home = () => {
                                 task={task}
                                 index={index}
                                 setActiveCard={setActiveCard}
+                                deleteTask={deleteTask}
                             ></TaskCard><DropArea  onDrop={() => onDrop('In Progress', index + 1)} /></div>) : null))
                             }
                         </div>
@@ -150,6 +160,7 @@ const Home = () => {
                                 task={task}
                                 index={index}
                                 setActiveCard={setActiveCard}
+                                deleteTask={deleteTask}
                             ></TaskCard><DropArea onDrop={() => onDrop('Done', index + 1)} /></div>) : null))
                             }
                         </div>
