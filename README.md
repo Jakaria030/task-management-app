@@ -6,7 +6,7 @@ A task management web application that allows users to create, update, and track
 
 
 ## Preview
-![Project Image](public/tma.png)
+![Project Image](public/tma.PNG)
 
 ## Key Features
 ✔️ User Authentication – Secure login and registration using Firebase Auth. <br />
