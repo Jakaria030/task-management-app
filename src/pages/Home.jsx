@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import LeftAside from "../components/LeftAside";
 import Spinner from "../components/Spinner";
 import TopNavbar from "../components/TopNavbar";
@@ -15,8 +15,9 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [tasks, setTasks] = useState([]);
     const [refetch, setRefetch] = useState(false);
-
+    const [item, setItem] = useState(null);
     const [activeCard, setActiveCard] = useState(null);
+    const closeRef = useRef();
 
     if (loading) {
         return <Spinner></Spinner>;
@@ -27,7 +28,7 @@ const Home = () => {
         try {
             setIsLoading(true);
             const { data } = await axios.get(`${baseURL}/tasks?email=${user?.email}`);
- 
+
             setTasks(data);
         } finally {
             setIsLoading(false);
@@ -37,7 +38,7 @@ const Home = () => {
     // get all task
     useEffect(() => {
         getTasks();
-    }, [user?.email, refetch]);
+    }, [user?.email, refetch, item]);
 
     // add task
     const handleFormSubmit = async (e) => {
@@ -67,9 +68,10 @@ const Home = () => {
 
     };
 
+    // drop handle
     const onDrop = async (status, position) => {
-        if(activeCard === null || activeCard === undefined) return;
-        
+        if (activeCard === null || activeCard === undefined) return;
+
         const taskToMove = tasks[activeCard]
         const updatedTask = tasks.filter((task, index) => index !== activeCard);
 
@@ -85,6 +87,43 @@ const Home = () => {
     };
 
     // eidt task
+    const showEditModal = (item) => {
+        setItem(item);
+        document.getElementById('edit_modal_id').showModal();
+    };
+
+    const handleEditForm = async (e) => {
+        e.preventDefault();
+
+        const title = e.target.title.value;
+        const description = e.target.description.value;
+
+        const { _id, ...rest } = item;
+        const newTask = {
+            ...rest,
+            title,
+            description
+        };
+
+
+        try {
+            setIsLoading(true);
+
+            const res = await axios.put(`${baseURL}/tasks/${_id}`, newTask);
+            if (res.data.acknowledged) {
+                e.target.reset();
+                getTasks();
+                document.getElementById('close_edit_modal').click();
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const closeModal = () => {
+        setItem(null);
+        closeRef.current.reset();
+    };
 
     // delete task
     const deleteTask = async (id) => {
@@ -116,15 +155,16 @@ const Home = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 py-5 md:py-8">
                     {/* To-DO */}
                     <div className="bg-slate-300 shadow-lg p-3 sm:p-5">
-                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">To-Do ({ tasks.filter(task => task.category === "To-Do").length})</h2>
+                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">To-Do ({tasks.filter(task => task.category === "To-Do").length})</h2>
                         <div className="">
                             {/* dragable component */}
-                            <DropArea onDrop={() => onDrop('To-Do', 0)}/>
+                            <DropArea onDrop={() => onDrop('To-Do', 0)} />
                             {
-                                tasks.map((task, index) => ( task.category === 'To-Do' ? (<div key={task._id}><TaskCard
+                                tasks.map((task, index) => (task.category === 'To-Do' ? (<div key={task._id}><TaskCard
                                     task={task}
                                     index={index}
                                     setActiveCard={setActiveCard}
+                                    showEditModal={showEditModal}
                                     deleteTask={deleteTask}
                                 >
                                 </TaskCard><DropArea onDrop={() => onDrop('To-Do', index + 1)} /></div>) : null))
@@ -134,34 +174,36 @@ const Home = () => {
 
                     {/* In Progress */}
                     <div className="bg-slate-300 shadow-lg p-3 sm:p-5">
-                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">In Progress ({ tasks.filter(task => task.category === "In Progress").length})</h2>
+                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">In Progress ({tasks.filter(task => task.category === "In Progress").length})</h2>
                         <div className="">
                             {/* dragable component */}
-                            <DropArea onDrop={() => onDrop('In Progress', 0)}/>
+                            <DropArea onDrop={() => onDrop('In Progress', 0)} />
                             {
                                 tasks.map((task, index) => (task.category === 'In Progress' ? (<div key={task._id}><TaskCard
-                                task={task}
-                                index={index}
-                                setActiveCard={setActiveCard}
-                                deleteTask={deleteTask}
-                            ></TaskCard><DropArea  onDrop={() => onDrop('In Progress', index + 1)} /></div>) : null))
+                                    task={task}
+                                    index={index}
+                                    setActiveCard={setActiveCard}
+                                    showEditModal={showEditModal}
+                                    deleteTask={deleteTask}
+                                ></TaskCard><DropArea onDrop={() => onDrop('In Progress', index + 1)} /></div>) : null))
                             }
                         </div>
                     </div>
 
                     {/* Done */}
                     <div className="bg-slate-300 shadow-lg p-3 sm:p-5">
-                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">Done ({ tasks.filter(task => task.category === "Done").length})</h2>
+                        <h2 className="bg-slate-800 text-white py-2 rounded-md text-center text-lg font-bold">Done ({tasks.filter(task => task.category === "Done").length})</h2>
                         <div className="">
                             {/* dragable component */}
-                            <DropArea onDrop={() => onDrop('Done', 0)}/>
+                            <DropArea onDrop={() => onDrop('Done', 0)} />
                             {
                                 tasks.map((task, index) => (task.category === 'Done' ? (<div key={task._id}><TaskCard
-                                task={task}
-                                index={index}
-                                setActiveCard={setActiveCard}
-                                deleteTask={deleteTask}
-                            ></TaskCard><DropArea onDrop={() => onDrop('Done', index + 1)} /></div>) : null))
+                                    task={task}
+                                    index={index}
+                                    setActiveCard={setActiveCard}
+                                    showEditModal={showEditModal}
+                                    deleteTask={deleteTask}
+                                ></TaskCard><DropArea onDrop={() => onDrop('Done', index + 1)} /></div>) : null))
                             }
                         </div>
                     </div>
@@ -176,13 +218,31 @@ const Home = () => {
                         <div>
                             <h3 className="text-2xl text-center font-medium mb-2">Add Task Form</h3>
                             <form onSubmit={handleFormSubmit} className="space-y-3 text-center">
-                                <input type="text" name="title" placeholder="Title" className="input input-bordered w-full rounded-md" required />
-                                <textarea name="description" className="textarea textarea-bordered w-full rounded-md" placeholder="Description" required></textarea>
+                                <input maxLength={50} type="text" name="title" placeholder="Title" className="input input-bordered w-full rounded-md" required />
+                                <textarea maxLength={200} name="description" className="textarea textarea-bordered w-full rounded-md" placeholder="Description" required></textarea>
+                                <button type="submit" className="w-20 py-2 bg-blue-500 text-white font-medium rounded-md">{isLoading ? <Loader></Loader> : "ADD"}</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </dialog>
+                {/* Edit Modal */}
+                <dialog id="edit_modal_id" className="modal">
+                    <div className="modal-box rounded-md">
+                        <form method="dialog">
+                            <button id="close_edit_modal" onClick={closeModal} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <div>
+                            <h3 className="text-2xl text-center font-medium mb-2">Add Task Form</h3>
+                            <form ref={closeRef} onSubmit={handleEditForm} className="space-y-3 text-center">
+                                <input maxLength={50} type="text" defaultValue={item?.title} name="title" placeholder="Title" className="input input-bordered w-full rounded-md" required />
+                                <textarea maxLength={200} defaultValue={item?.description} name="description" className="textarea textarea-bordered w-full rounded-md" placeholder="Description" required></textarea>
                                 <button type="submit" className="w-20 py-2 bg-blue-500 text-white font-medium rounded-md">{isLoading ? <Loader></Loader> : "ADD"}</button>
                             </form>
                         </div>
                     </div>
                 </dialog>
+
             </main>
         </div>
     );
